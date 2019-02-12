@@ -74,13 +74,13 @@ jobs:
           name: Deploy to Heroku
           command: |
               if [ "${CIRCLE_BRANCH}" == "master" ]; then 
-                  git push https://heroku:7848d0a9-0034-4640-82c7-cf5ce56b62a2@git.heroku.com/angular-ci-cd-production.git master --force
+                  git push https://heroku:${HEROKU_API_TOKEN}@git.heroku.com/angular-ci-cd-production.git master --force
               
               elif [ "${CIRCLE_BRANCH}" == "develop" ]; then
-                  git push https://heroku:7848d0a9-0034-4640-82c7-cf5ce56b62a2@git.heroku.com/angular-ci-cd-develop.git master --force
+                  git push https://heroku:${HEROKU_API_TOKEN}@git.heroku.com/angular-ci-cd-develop.git master --force
               
               elif [ ["${CIRCLE_BRANCH}" != "develop"] ] && [ ["${CIRCLE_BRANCH}" != "master"] ]; then 
-                  git push  https://heroku:7848d0a9-0034-4640-82c7-cf5ce56b62a2@git.heroku.com/angular-ci-cd-release.git  master --force
+                  git push  https://heroku:${HEROKU_API_TOKEN}@git.heroku.com/angular-ci-cd-release.git  master --force
                  
               else
                   echo "ERROR: not deploy branch ${CIRCLE_BRANCH}"
