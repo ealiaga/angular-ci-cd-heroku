@@ -4,7 +4,7 @@ const express = require('express');
 const app = express();
 
 // Use the /dist directory
-app.use(express.static(__dirname + '/dist/angular-ci-cd'));
+app.use(express.static(__dirname + '/dist/angular-ci-cd-heroku'));
 
 //HTTPS redirect middleware
 function ensureSecure(req, res, next) {
@@ -22,7 +22,7 @@ app.use(ensureSecure);
 
 // Catch all other invalid routes
 app.all('*', function (req, res) {
-    res.status(200).sendFile(__dirname + '/dist/angular-ci-cd/index.html');
+    res.status(200).sendFile(__dirname + '/dist/angular-ci-cd-heroku/index.html');
 });
 
 // Start the app by listening on the default Heroku port
