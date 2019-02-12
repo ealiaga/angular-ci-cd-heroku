@@ -1,0 +1,106 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:9.4
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Log the current branch
+      - run:
+          name: Show current branch
+          command: echo ${CIRCLE_BRANCH}
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-
+
+      # Install project dependencies
+      - run:
+          name: Install local dependencies
+          command: npm install
+
+      # Cache local dependencies if they don't exist
+      - save_cache:
+          key: v1-dependencies-{{ checksum "package.json" }}
+          paths:
+              - node_modules
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+     
+      # Test the source code
+      #- run:
+      #    name: Testing
+      #    command: npm run test
+
+      - run:
+          name: Building
+          command: |
+              if [ "${CIRCLE_BRANCH}" == "master" ]; then 
+                  npm run build-prod
+
+              elif [ "${CIRCLE_BRANCH}" == "develop" ]; then
+                  npm run build-develop
+
+              elif [ ["${CIRCLE_BRANCH}" != "develop"] ] && [ ["${CIRCLE_BRANCH}" != "master"] ]; then 
+                  npm run build-release
+              else
+                  echo "ERROR: not build branch ${CIRCLE_BRANCH}"
+                  exit 1
+              fi
+
+  deploy:
+    docker:
+      - image: circleci/node:9.4
+    
+    working_directory: ~/repo
+    
+    steps:
+      - checkout
+      
+      - run:
+          name: Show current branch
+          command: echo ${CIRCLE_BRANCH}
+
+      - run:
+          name: Deploy to Heroku
+          command: |
+              if [ "${CIRCLE_BRANCH}" == "master" ]; then 
+                  git push https://heroku:7848d0a9-0034-4640-82c7-cf5ce56b62a2@git.heroku.com/angular-ci-cd-production.git master
+              
+              elif [ "${CIRCLE_BRANCH}" == "develop" ]; then
+                  git push https://heroku:7848d0a9-0034-4640-82c7-cf5ce56b62a2@git.heroku.com/angular-ci-cd-develop.git master
+              
+              elif [ ["${CIRCLE_BRANCH}" != "develop"] ] && [ ["${CIRCLE_BRANCH}" != "master"] ]; then 
+                  git push  https://heroku:7848d0a9-0034-4640-82c7-cf5ce56b62a2@git.heroku.com/angular-ci-cd-release.git  master
+                 
+              else
+                  echo "ERROR: not deploy branch ${CIRCLE_BRANCH}"
+                  exit 1
+              fi
+            
+workflows:
+    version: 2
+    # The build and deploy workflow
+    build_and_deploy:
+        jobs:
+            - build
+            # The deploy job will only run on the filtered branches and
+            # require the build job to be successful before it starts
+            - deploy:
+                requires:
+                    - build
+                filters:
+                    branches:
+                        only:
+                            - develop
+                            - /release/.*/
+                            - master

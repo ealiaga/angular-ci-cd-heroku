@@ -1,3 +1,5 @@
 export const environment = {
-  production: true
+    production: true,
+    name: 'production',
+    api: 'http://api-back-production:8001'
 };
